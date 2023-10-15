@@ -2,22 +2,36 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.10.0"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <link
+      rel="stylesheet"
+      href="styles.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.10.0"
+    ></script>
 
     <title>Outfit Recommender</title>
   </head>
   <body>
-    <h1>Outfit Recommender</h1>
-    <label for="occasionSelect">Select Occasion:</label>
-    <select id="occasionSelect">
-      <option value="casual">Casual</option>
-      <option value="formal">Formal</option>
-      <option value="sportswear">Sportswear</option>
-    </select>
-    <button id="recommendButton">Recommend Outfit</button>
-    <div id="outfitRecommendation"></div>
-    <script src="AiTest.js"></script>
+    <div class="container">
+      <h1>Outfit Recommender</h1>
+      <h1 id="labelElement">Current Weather in Auckland: </h1>
+
+      <label for="occasionSelect">Select Occasion:</label>
+      <select id="occasionSelect">
+        <option value="casual">Casual</option>
+        <option value="formal">Formal</option>
+        <option value="sportswear">Sportswear</option>
+      </select>
+      <button id="recommendButton">Recommend Outfit</button>
+      <div id="outfitRecommendation"></div>
+    </div>
+    <script
+      src="AiTest.js"
+    ></script>
   </body>
 </html>

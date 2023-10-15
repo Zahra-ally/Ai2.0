@@ -1,3 +1,40 @@
+let weatherConditionAPI;
+let weatherID;
+let currentWeather = "Sunny"; // Set the default weather condition
+
+fetch(
+  `https://api.openweathermap.org/data/2.5/weather?q=Auckland&units=metric&appid=108dd9a67c96f23039937fe6f3c91963`
+)
+  .then((response) => response.json())
+  .then((data) => {
+    // Handle the weather data here (e.g., display temperature, description, etc.).
+    console.log(data.weather[0].id);
+    weatherID = data.weather[0].id;
+    weatherConditionAPI = data.weather[0].main;
+
+    labelElement.innerText = `Current Weather in Auckland: ${weatherConditionAPI}`;
+
+    if (weatherID == 800 || weatherID == 801) {
+      currentWeather = "Sunny";
+    }
+    if (weatherID == 802 || weatherID == 803 || weatherID == 804) {
+      currentWeather = "Cloudy";
+    }
+
+    if (
+      weatherID == 500 ||
+      weatherID == 501 ||
+      weatherID == 502 ||
+      weatherID == 503 ||
+      weatherID == 504
+    ) {
+      currentWeather = "Rainy";
+    }
+  })
+  .catch((error) => {
+    console.error("Error fetching weather data:", error);
+  });
+
 const LOOKUP = [
   "T-shirt",
   "Trouser",
@@ -11,8 +48,16 @@ const LOOKUP = [
   "Ankle boot",
 ];
 
+const QTable = {}; // Initialize the Q-table
+const learningRate = 0.1;
+const discountFactor = 0.9;
+
+LOOKUP.forEach((outfit) => {
+  QTable[outfit] = 0; // Initialize Q-values for each outfit
+});
+
 async function loadModel() {
-  const model = await tf.loadLayersModel("my_model/model5.json");
+  const model = await tf.loadLayersModel("my_model/model6.json");
   return model;
 }
 
@@ -31,13 +76,18 @@ async function recommendOutfit() {
 
   const imagePaths = {
     casual: [
-      //   "casual_image1.png",
       "casual_image2.png",
       "casual_image3.png",
       "casual_image4.png",
       "casual_image5.png",
       "casual_image6.png",
       "casual_image7.png",
+      "casual_image8.png",
+      "casual_image9.png",
+      "casual_image10.png",
+      "casual_image11.png",
+      "casual_image12.png",
+      "casual_image13.png",
     ],
     formal: [
       "formal_image1.png",
@@ -45,6 +95,23 @@ async function recommendOutfit() {
       "formal_image3.png",
       "formal_image4.png",
       "formal_image5.png",
+      "formal_image6.png",
+      "formal_image7.png",
+      "formal_image8.png",
+      "formal_image9.png",
+      "formal_image10.png",
+    ],
+    sportswear: [
+      "sports_image1.png",
+      "sports_image2.png",
+      "sports_image3.png",
+      "sports_image4.png",
+      "sports_image5.png",
+      "sports_image6.png",
+      "sports_image7.png",
+      "sports_image8.png",
+      "sports_image9.png",
+      "sports_image10.png",
     ],
   };
 
@@ -77,95 +144,150 @@ async function recommendOutfit() {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(imageElement, 0, 0, 28, 28);
 
-    // Preprocess the image as needed.
     const imageData = ctx.getImageData(0, 0, 28, 28);
     const inputTensor = tf.browser.fromPixels(imageData, 1);
-    const normalizedInput = inputTensor.toFloat().div(255.0); // Normalize and convert to float.
-    const flattenedInput = normalizedInput.reshape([1, 784]); // Flatten the image.
+    const normalizedInput = inputTensor.toFloat().div(255.0);
+    const flattenedInput = normalizedInput.reshape([1, 28, 28, 1]);
 
-    // Perform inference using the loaded model.
     const prediction = model.predict(flattenedInput);
-
-    // Get the predicted class index.
     const predictedClass = prediction.argMax(1).dataSync()[0];
-
-    // Map the predicted class index to the class label.
     const predictedLabel = LOOKUP[predictedClass];
-
+    qLearning(
+      predictedClass,
+      currentWeather,
+      selectedOccasion,
+      recommendations
+    );
     if (
-      (predictedLabel == "T-shirt" ||
-        predictedLabel == "Pullover" ||
-        predictedLabel == "Coat" ||
-        predictedLabel == "Shirt") &&
-      !recommendations.top
+      !recommendations.shoe &&
+      (predictedLabel === "Sandal" ||
+        predictedLabel === "Sneaker" ||
+        predictedLabel === "Ankle boot")
     ) {
-      // Display the image and the predicted label.
-      const imageContainer = document.createElement("div");
-      const imgElement = new Image();
-      imgElement.src = imageElement.src;
-      const labelElement = document.createElement("p");
-      labelElement.innerText = `Predicted Label: ${predictedLabel}`;
-
-      imageContainer.appendChild(imgElement);
-      imageContainer.appendChild(labelElement);
-
-      outfitRecommendation.appendChild(imageContainer);
-      recommendations.top = true;
-    }
-
-    if (predictedLabel == "Trouser" && !recommendations.bottom) {
-      // Display the image and the predicted label.
-      const imageContainer = document.createElement("div");
-      const imgElement = new Image();
-      imgElement.src = imageElement.src;
-      const labelElement = document.createElement("p");
-      labelElement.innerText = `Predicted Label: ${predictedLabel}`;
-
-      imageContainer.appendChild(imgElement);
-      imageContainer.appendChild(labelElement);
-
-      outfitRecommendation.appendChild(imageContainer);
-      recommendations.bottom = true;
-    }
-
-    if (
-      predictedLabel == "Dress" &&
+      displayOutfit(
+        imageElement,
+        predictedLabel,
+        outfitRecommendation,
+        recommendations,
+        "shoe"
+      );
+    } else if (
+      !recommendations.dress &&
+      predictedLabel === "Dress" &&
       !recommendations.bottom &&
       !recommendations.top
     ) {
-      // Display the image and the predicted label.
-      const imageContainer = document.createElement("div");
-      const imgElement = new Image();
-      imgElement.src = imageElement.src;
-      const labelElement = document.createElement("p");
-      labelElement.innerText = `Predicted Label: ${predictedLabel}`;
-
-      imageContainer.appendChild(imgElement);
-      imageContainer.appendChild(labelElement);
-
-      outfitRecommendation.appendChild(imageContainer);
-      recommendations.bottom = true;
-      recommendations.top = true;
-    }
-
-    if (
-      (predictedLabel == "Sandal" ||
-        predictedLabel == "Sneaker" ||
-        predictedLabel == "Ankle boot") &&
-      !recommendations.shoe
+      displayOutfit(
+        imageElement,
+        predictedLabel,
+        outfitRecommendation,
+        recommendations,
+        "dress"
+      );
+    } else if (
+      !recommendations.top &&
+      (predictedLabel === "T-shirt" ||
+        predictedLabel === "Pullover" ||
+        predictedLabel === "Coat" ||
+        predictedLabel === "Shirt")
     ) {
-      // Display the image and the predicted label.
-      const imageContainer = document.createElement("div");
-      const imgElement = new Image();
-      imgElement.src = imageElement.src;
-      const labelElement = document.createElement("p");
-      labelElement.innerText = `Predicted Label: ${predictedLabel}`;
-
-      imageContainer.appendChild(imgElement);
-      imageContainer.appendChild(labelElement);
-
-      outfitRecommendation.appendChild(imageContainer);
-      recommendations.shoe = true;
+      displayOutfit(
+        imageElement,
+        predictedLabel,
+        outfitRecommendation,
+        recommendations,
+        "top"
+      );
+    } else if (
+      !recommendations.bottom &&
+      predictedLabel === "Trouser" &&
+      !recommendations.dress &&
+      !recommendations.top
+    ) {
+      displayOutfit(
+        imageElement,
+        predictedLabel,
+        outfitRecommendation,
+        recommendations,
+        "bottom"
+      );
     }
   });
+}
+
+function displayOutfit(
+  imageElement,
+  predictedLabel,
+  outfitRecommendation,
+  recommendations,
+  outfitType
+) {
+  const imageContainer = document.createElement("div");
+  const imgElement = new Image();
+  imgElement.src = imageElement.src;
+  const labelElement = document.createElement("p");
+
+  imageContainer.appendChild(imgElement);
+  imageContainer.appendChild(labelElement);
+
+  outfitRecommendation.appendChild(imageContainer);
+  recommendations[outfitType] = true;
+}
+
+function qLearning(
+  predictedLabel,
+  currentWeather,
+  selectedOccasion,
+  recommendations
+) {
+  // Set the exploration rate (epsilon) to control exploration vs. exploitation
+  const epsilon = 0.2; 
+
+  // Randomly explore with probability epsilon
+  if (Math.random() < epsilon) {
+    // Choose a random outfit for exploration
+    const randomOutfitIndex = Math.floor(Math.random() * LOOKUP.length);
+    return LOOKUP[randomOutfitIndex];
+  } else {
+    // Filter allowed outfits based on weather, occasion, and outfit type
+    const allowedOutfits = LOOKUP.filter((outfit) => {
+      if (
+        (outfit === "T-shirt" || outfit === "Shirt") &&
+        recommendations.top === false
+      ) {
+        return true;
+      }
+      if (outfit === "Trouser" && recommendations.bottom === false) {
+        return true;
+      }
+      if (
+        (outfit === "Sandal" ||
+          outfit === "Sneaker" ||
+          outfit === "Ankle boot") &&
+        recommendations.shoe === false &&
+        (currentWeather === "Sunny" ||
+          currentWeather === "Cloudy" ||
+          currentWeather === "Rainy")
+      ) {
+        return true;
+      }
+      if (
+        outfit === "Dress" &&
+        recommendations.dress === false &&
+        (selectedOccasion === "casual" ||
+          currentWeather === "Sunny" ||
+          currentWeather === "Rainy")
+      ) {
+        return true;
+      }
+      return false;
+    });
+
+    // Choose the outfit with the highest Q-value among allowed outfits for exploitation
+    const bestOutfit = allowedOutfits.reduce((best, outfit) => {
+      return QTable[outfit] > QTable[best] ? outfit : best;
+    }, allowedOutfits[0]);
+
+    return bestOutfit;
+  }
 }
