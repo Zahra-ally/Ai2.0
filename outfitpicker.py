@@ -136,8 +136,7 @@ def fetch_current_weather_code():
                 for weather_data in weatherSchema:
                     if weather_data["code"] == current_weather_code:
                         weatherCondition= weather_data['description']
-                        weather_label.config(text=f"Current Hourly Weather Condition: Sunny", font=('Arial', 20, 'bold'), fg='black')
-                        #weather_label.config(text=f"Current Hourly Weather Condition: {weather_data['description']}", font=('Arial', 20, 'bold'), fg='black')
+                        weather_label.config(text=f"Recommending {weatherCondition} outfits", font=('Arial', 15, 'bold'), fg='black')
                         break
                 else:
                     weather_label.config(text="Weather code not found in the schema.")
@@ -151,7 +150,6 @@ def fetch_current_weather_code():
 
 
 def recommend_outfit(outfits, occasion, current_weather):
-    print(current_weather)
     """
     Recommends an outfit based on the current weather condition and the specified occasion.
     Returns a ist of recommended outfit items based on the specified occasion and current weather condition.
@@ -189,7 +187,7 @@ weather_panel.pack(side="top", fill="both", expand=True)
 outfit_panel = tk.Frame(root, bg='pink')
 outfit_panel.pack(side="left", fill="both", expand=True)
 
-# Display the outfit in the UI
+
 def display_outfit_ui(outfit_items, class_names, test_images, test_labels, panel, occasion):
     for widget in panel.winfo_children():
         widget.destroy()
@@ -202,7 +200,7 @@ def display_outfit_ui(outfit_items, class_names, test_images, test_labels, panel
 
     # Add labels on the left
     for i, name in enumerate(label_names):
-        tk.Label(panel, text=name, bg='pink', fg='black', font=('Arial', 12, 'bold')).grid(row=i, column=0, padx=5, pady=5)
+        tk.Label(panel, text=name, bg='pink', fg='black', font=('Arial', 12, 'bold')).grid(row=i, column=0, padx=5, pady=5, sticky="nsew")
 
     # Display outfit images
     for i, item in enumerate(outfit_items):
@@ -213,8 +211,14 @@ def display_outfit_ui(outfit_items, class_names, test_images, test_labels, panel
             photo = ImageTk.PhotoImage(img)
             label = tk.Label(panel, image=photo, bg='pink')
             label.image = photo
-            label.grid(row=i, column=1, padx=5, pady=5)
+            label.grid(row=i, column=1, padx=5, pady=5, sticky="nsew")
             label.config(text=item, compound='top', bg='pink')
+
+    # Set row and column weights to prevent resizing
+    for i in range(3):
+        panel.grid_rowconfigure(i, weight=1)
+    panel.grid_columnconfigure(0, weight=1)
+
 
 
 # Functions for handling like and dislike
@@ -290,7 +294,7 @@ dislike_button.config(bg='pink')
 dislike_button.pack(side="top", padx=10, pady=10)
 
 occasion_dropdown = tk.OptionMenu(control_panel, selected_occasion, *occasions)
-occasion_dropdown.config(bg='pink', relief="flat")
+occasion_dropdown.config(bg='black', relief="flat")
 occasion_dropdown.pack(side="top", padx=10, pady=10)
 
 
