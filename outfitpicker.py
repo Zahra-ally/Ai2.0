@@ -13,11 +13,15 @@ import tensorflow as tf
 import requests
 from datetime import datetime
 from weatherSchema import weatherSchema
+import threading  # Import the threading module
 
 # Initialize Q-table
 num_states = 3
 num_actions = 27
 Q = np.zeros((num_states, num_actions))
+
+# Initialize a list to store Q-values
+q_values_history = []
 
 # Load the model
 model = tf.keras.models.load_model('fashion_mnist_model.h5')
@@ -219,6 +223,13 @@ def like_outfit():
 def dislike_outfit():
     handle_feedback(-1)
 
+
+# Function to update Q-values history
+def update_q_values_history():
+    global Q
+    q_values_history.append(np.mean(Q))  # Append the mean of all Q-values to the history list
+
+
 def handle_feedback(feedback):
     """
     Handles the feedback provided for the recommended outfit and updates the Q-table accordingly.
@@ -244,6 +255,17 @@ def handle_feedback(feedback):
         print("error in handle_feedback " +recommended_outfit['error'])
     else:
         display_outfit_ui(recommended_outfit, class_names, test_images, test_labels, outfit_panel, chosen_occasion)
+        update_q_values_history()
+
+# Plot the Q-values over iterations
+def plot_q_values_history():
+    plt.plot(range(len(q_values_history)), q_values_history)
+    plt.xlabel('Iterations')
+    plt.ylabel('Average Q-value')
+    plt.title('Q-learning Evaluation')
+    plt.show()
+    plot_thread = threading.Thread(target=plt.show)
+    plot_thread.start()  # Start the thread to display the plot
 
 
 # Add like and dislike buttons and occasion dropdown on the UI
@@ -299,3 +321,5 @@ if __name__ == '__main__':
         print(e)
 
     root.mainloop()
+    # Plot the Q-values history after the main loop
+    plot_q_values_history()
