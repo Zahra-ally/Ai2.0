@@ -35,12 +35,12 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 outfits = {
     'casual': {
         'Sunny': {
-            'top': ['T-shirt/top', 'Pullover'],
+            'top': ['T-shirt/top'],
             'bottom': ['Trouser'],
             'shoes': ['Sneaker', 'Sandal']
         },
         'Rainy': {
-            'top': ['Coat'],
+            'top': ['Coat', 'Pullover'],
             'bottom': ['Trouser'],
             'shoes': ['Sneaker']
         },
@@ -50,7 +50,7 @@ outfits = {
             'shoes': ['Sneaker']
         },
         'Cloudy': {
-            'top': ['Coat', 'T-shirt/top'],
+            'top': ['Coat', 'T-shirt/top', 'Pullover'],
             'bottom': ['Trouser'],
             'shoes': ['Sneaker', 'Sandal']
         }
@@ -136,7 +136,8 @@ def fetch_current_weather_code():
                 for weather_data in weatherSchema:
                     if weather_data["code"] == current_weather_code:
                         weatherCondition= weather_data['description']
-                        weather_label.config(text=f"Current Hourly Weather Condition: {weather_data['description']}", font=('Arial', 20, 'bold'), fg='black')
+                        weather_label.config(text=f"Current Hourly Weather Condition: Sunny", font=('Arial', 20, 'bold'), fg='black')
+                        #weather_label.config(text=f"Current Hourly Weather Condition: {weather_data['description']}", font=('Arial', 20, 'bold'), fg='black')
                         break
                 else:
                     weather_label.config(text="Weather code not found in the schema.")
@@ -150,6 +151,7 @@ def fetch_current_weather_code():
 
 
 def recommend_outfit(outfits, occasion, current_weather):
+    print(current_weather)
     """
     Recommends an outfit based on the current weather condition and the specified occasion.
     Returns a ist of recommended outfit items based on the specified occasion and current weather condition.
@@ -159,7 +161,6 @@ def recommend_outfit(outfits, occasion, current_weather):
         occasion (str): Occasion for which the outfit is being recommended (e.g., 'casual', 'formal', 'sporty').
         current_weather (str): Current weather condition for which the outfit is being recommended.
     """
-
     if occasion in outfits and outfits[occasion] and current_weather in outfits[occasion]:
         outfit_options = outfits[occasion][current_weather]
     else:
@@ -259,14 +260,17 @@ def handle_feedback(feedback):
 
 # Plot the Q-values over iterations
 def plot_q_values_history():
+    global q_values_history
     plt.plot(range(len(q_values_history)), q_values_history)
     plt.xlabel('Iterations')
     plt.ylabel('Average Q-value')
     plt.title('Q-learning Evaluation')
     plt.show()
+    print("Q-values history:")
+    for i, q_value in enumerate(q_values_history):
+        print(f"Iteration {i+1}: {q_value}")
     plot_thread = threading.Thread(target=plt.show)
-    plot_thread.start()  # Start the thread to display the plot
-
+    plot_thread.start()
 
 # Add like and dislike buttons and occasion dropdown on the UI
 occasions = ['casual', 'formal', 'sporty']  # List of occasions
@@ -310,12 +314,10 @@ weather_label.pack(side="top", padx=10, pady=10)
 
 
 if __name__ == '__main__':
-    # Call functions to display initial outfit images
     chosen_occasion = selected_occasion.get()
     fetch_current_weather_code()
-    current_weather = weatherCondition
     try:
-        recommended_outfit = recommend_outfit(outfits, chosen_occasion, current_weather)
+        recommended_outfit = recommend_outfit(outfits, chosen_occasion, weatherCondition)
         display_outfit_ui(recommended_outfit, class_names, test_images, test_labels, outfit_panel, chosen_occasion)
     except ValueError as e:
         print(e)
